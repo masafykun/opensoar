@@ -1,0 +1,8 @@
+[
+  { "name": "Nginx",          "service": "nginx",        "url": "",                         "domain": "" },
+  { "name": "Fail2ban",       "service": "fail2ban",     "url": "",                         "domain": "" },
+  { "name": "SSH",            "service": "ssh",          "url": "",                         "domain": "" },
+  { "name": "PostgreSQL",     "service": "postgresql",   "url": "",                         "domain": "" },
+  { "name": "My Web App",     "service": "my-web-app",   "url": "https://app.example.com",  "domain": "app.example.com" },
+  { "name": "My API",         "service": "my-api",       "url": "https://api.example.com",  "domain": "api.example.com" }
+]

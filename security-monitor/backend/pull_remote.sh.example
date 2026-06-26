@@ -1,0 +1,24 @@
+#!/bin/bash
+# リモートサーバのログをSSHでpullしてローカルにキャッシュ（cronで定期実行）。
+# このファイルを pull_remote.sh にコピーし、ターゲットを自分の環境に書き換える。
+# 各リモートには読取専用の forced-command 鍵を登録すること（README参照）。
+#
+#   */2 * * * * root /path/to/pull_remote.sh >/dev/null 2>&1
+#
+K="${SOAR_PULL_KEY:-$HOME/.ssh/soar_logpull}"   # pull用SSH秘密鍵
+PORT="${SOAR_PULL_PORT:-22}"
+OUT="${SOAR_REMOTE_DIR:-/var/log/soar-remote}"
+mkdir -p "$OUT"
+
+pull() {  # $1=env名  $2=user@host
+  if timeout 25 ssh -i "$K" -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 \
+       -o BatchMode=yes -p "$PORT" "$2" > "$OUT/$1.tmp" 2>/dev/null && [ -s "$OUT/$1.tmp" ]; then
+    mv "$OUT/$1.tmp" "$OUT/$1.txt"
+  else
+    rm -f "$OUT/$1.tmp"
+  fi
+}
+
+# 連携したいリモートを列挙（SOAR_REMOTE_ENVS と env名を揃える）
+pull staging root@10.0.0.2
+# pull edge   admin@10.0.0.3

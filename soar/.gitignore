@@ -1,0 +1,43 @@
+# ── Secrets / 環境変数 ──────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── SQLite（攻撃元IP・アラート履歴を含むため絶対にコミットしない）──
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+security-monitor/backend/geoip_cache.db
+security-monitor/backend/alerts_history.db
+data/
+
+# ── 個人インフラ設定（実IP・鍵パス・ターゲット）──
+pull_remote.sh
+services.yaml
+config.yaml
+*.pem
+id_ed25519*
+*_logpull*
+
+# ── Python ──
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# ── Node / Next.js ──
+node_modules/
+.next/
+out/
+npm-debug.log*
+
+# ── OS / エディタ ──
+.DS_Store
+*.swp
+
+# ── プロジェクト内部資料（公開しない方針）──
+CLAUDE.md
+BUILD_LOG.md
