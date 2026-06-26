@@ -2,6 +2,8 @@
 
 > 実ログで動く、セルフホスト型のリアルタイム脅威監視ダッシュボード
 
+**[English](README.en.md)** | **日本語**
+
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 ![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-14-000000?logo=next.js&logoColor=white)
