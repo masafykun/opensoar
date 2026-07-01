@@ -10,7 +10,6 @@ _REMOTE_DIR = os.getenv("SOAR_REMOTE_DIR", "/var/log/soar-remote")
 _ENVS = [e.strip() for e in os.getenv("SOAR_REMOTE_ENVS", "").split(",") if e.strip()]
 # サイト名から剥がすドメインサフィックス（表示用、任意）
 _DOMAIN_SUFFIX = os.getenv("SOAR_DOMAIN_SUFFIX", "")
-_IP_RE = re.compile(r"\b(\d{1,3}(?:\.\d{1,3}){3})\b")
 
 
 def _read_bundle(env: str):
@@ -66,10 +65,15 @@ def remote_ssh_fail_lines() -> list[str]:
 
 
 def remote_ssh_fail_counts() -> dict[str, int]:
-    """{ip: count}（全リモート合算）。後方互換用。"""
+    """{ip: count}（全リモート合算）。後方互換用。
+    IP抽出は threats._lastb_event（行末の日時直前=本物のIP欄を採用）に委譲し、
+    ユーザー名欄へIP風文字列を仕込む偽装を無効化する。"""
+    from datetime import datetime
+    import threats  # 遅延importで循環参照を回避
+    now_dt = datetime.now()
     counts: dict[str, int] = {}
     for line in remote_ssh_fail_lines():
-        m = _IP_RE.search(line)
-        if m and m.group(1) != "0.0.0.0":
-            counts[m.group(1)] = counts.get(m.group(1), 0) + 1
+        ip, _ = threats._lastb_event(line, now_dt)
+        if ip:
+            counts[ip] = counts.get(ip, 0) + 1
     return counts

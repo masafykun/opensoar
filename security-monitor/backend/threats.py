@@ -27,7 +27,6 @@ _DANGEROUS_TYPES = {
 }
 
 _MAX_SOURCES = 30  # 地図が見やすい上限
-_IP_RE = re.compile(r"\b(\d{1,3}(?:\.\d{1,3}){3})\b")
 
 
 def _severity(events: int, dangerous: bool) -> str:
@@ -47,8 +46,17 @@ _DEFAULT_WINDOW = os.getenv("SOAR_DEFAULT_WINDOW", "24h")
 
 _MONTHS_T = {"Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,
              "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12}
-# lastb 行の時刻部 "Jun 26 14:00"（年なし）を拾う
-_LASTB_RE = re.compile(r"\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2})\s+(\d{1,2}):(\d{2})\b")
+# lastb -i 行の「攻撃元IP ＋ 日時」を1つのパターンで拾う（IP欄は必ず日時の直前）。
+# 形式: <IP> <曜日> <月> <日> <HH:MM>。ユーザー名欄は攻撃者が任意指定でき
+# "1.2.3.4 Mon Jan 1 00:00" のような偽IP/日時を仕込めるが、攻撃者が制御できるのは
+# 行頭のユーザー名欄のみで本物の日時は常に行末に来る。よって finditer の
+# 「最後の一致」を採るだけで、ユーザー名欄への偽装（データ汚染）を無効化できる。
+_LASTB_EVENT_RE = re.compile(
+    r"(?P<ip>\d{1,3}(?:\.\d{1,3}){3})\s+"
+    r"(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+"
+    r"(?P<mon>Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+"
+    r"(?P<day>\d{1,2})\s+(?P<hh>\d{1,2}):(?P<mm>\d{2})\b"
+)
 
 
 def _window_since(window: str, now: float):
@@ -66,23 +74,28 @@ def _iso(ep):
         return None
 
 
-def _parse_lastb_epoch(line: str, now_dt: datetime):
-    """lastb 行の時刻 -> epoch秒。年は当年と仮定し、未来になるなら前年に補正。"""
-    m = _LASTB_RE.search(line)
-    if not m:
-        return None
-    mon, day, hh, mm = m.groups()
+def _lastb_event(line: str, now_dt: datetime):
+    """lastb -i 行から (攻撃元IP, epoch秒) を抽出。年は当年と仮定し未来なら前年に補正。
+    末尾の「IP＋日時」一致（＝本物）を採用し、ユーザー名欄へのIP/日時偽装を無効化する。
+    一致しない / 0.0.0.0 の行は (None, None) を返し集計から除外する。"""
+    m = None
+    for m in _LASTB_EVENT_RE.finditer(line):
+        pass  # 最後の一致＝行末の本物の日時（＋その直前の本物のIP）を採用
+    if m is None or m.group("ip") == "0.0.0.0":
+        return None, None
+    ip = m.group("ip")
     try:
-        dt = datetime(now_dt.year, _MONTHS_T[mon], int(day), int(hh), int(mm))
+        dt = datetime(now_dt.year, _MONTHS_T[m.group("mon")], int(m.group("day")),
+                      int(m.group("hh")), int(m.group("mm")))
         ep = dt.timestamp()
     except Exception:
-        return None
+        return ip, None
     if ep > now_dt.timestamp() + 86400:  # 年跨ぎ（1月に12月の行を読んだ等）
         try:
             ep = dt.replace(year=now_dt.year - 1).timestamp()
         except Exception:
             pass
-    return ep
+    return ip, ep
 
 
 def _ssh_fail_counts(since: float = None):
@@ -97,13 +110,12 @@ def _ssh_fail_counts(since: float = None):
         for line in lines:
             if not line or line.startswith("btmp") or line.startswith("Failed"):
                 continue
-            m = _IP_RE.search(line)
-            if not m or m.group(1) == "0.0.0.0":
+            ip, ep = _lastb_event(line, now_dt)
+            if ip is None:  # IP＋日時が末尾に無い行（偽装のみ/解析不能）は除外
                 continue
-            ep = _parse_lastb_epoch(line, now_dt)
             if since is not None and (ep is None or ep < since):
                 continue  # 期間外（時刻不明含む）は除外
-            counts[m.group(1)] += 1
+            counts[ip] += 1
             if ep is not None:
                 tmin = ep if tmin is None else min(tmin, ep)
                 tmax = ep if tmax is None else max(tmax, ep)
