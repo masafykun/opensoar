@@ -8,6 +8,9 @@
 ![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-14-000000?logo=next.js&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+[![Live Demo](https://img.shields.io/badge/🔗_Live_Demo-soar--demo.1qaz.jp-14b8a6?logo=leaflet&logoColor=white)](https://soar-demo.1qaz.jp)
+
+> **🔗 ライブデモ: [soar-demo.1qaz.jp](https://soar-demo.1qaz.jp)** — 実サーバへの攻撃をリアルタイムに可視化した公開インスタンスです。データは匿名化しています（攻撃元IPは下位2オクテットを伏字、ドメイン・製品名・環境名はマスキング、書き込み操作は無効）。
 
 サーバの **nginxアクセスログ・SSHログイン失敗・fail2ban** を集計し、世界地図に
 「攻撃元 → 自サーバ」をリアルタイムに描画する、軽量な **SOAR 風**セキュリティダッシュボードです。

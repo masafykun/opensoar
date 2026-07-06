@@ -8,6 +8,9 @@
 ![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-14-000000?logo=next.js&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+[![Live Demo](https://img.shields.io/badge/🔗_Live_Demo-soar--demo.1qaz.jp-14b8a6?logo=leaflet&logoColor=white)](https://soar-demo.1qaz.jp)
+
+> **🔗 Live demo: [soar-demo.1qaz.jp](https://soar-demo.1qaz.jp)** — a public instance visualizing real attacks against a live server in real time. The data is anonymized (source IPs have their last two octets redacted; domains, product and environment names are masked; write actions are disabled).
 
 OpenSOAR aggregates your server's **nginx access logs, SSH login failures and fail2ban**,
 and draws "attacker → your server" arcs on a world map in real time — a lightweight,
