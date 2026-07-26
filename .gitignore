@@ -12,7 +12,9 @@
 *.sqlite-shm
 security-monitor/backend/geoip_cache.db
 security-monitor/backend/alerts_history.db
-data/
+# ※ 先頭スラッシュ無しの "data/" は全階層に一致し、
+#   ソースである soar/src/data/ まで巻き添えにする。
+/security-monitor/backend/data/
 
 # ── 個人インフラ設定（実IP・鍵パス・サービス棚卸し・ターゲット）──
 pull_remote.sh
